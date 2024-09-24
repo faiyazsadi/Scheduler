@@ -20,6 +20,7 @@ public class SchedulerApplication {
         SpringApplication.run(SchedulerApplication.class, args);
 
         String STREAM_NAME = "JOBS";
+        String HASH_NAME = "STATUS";
         String GROUP_NAME  = "EXECUTORS";
         String CONSUMER_NAME = "EXECUTOR-1";
         String HOST_NAME = "127.0.0.1";
@@ -42,7 +43,6 @@ public class SchedulerApplication {
                     );
                 }
             }
-
 
             boolean groupExists = false;
             List<StreamGroupInfo> groupInfo = jedis.xinfoGroups(STREAM_NAME);
@@ -69,10 +69,31 @@ public class SchedulerApplication {
                     XReadGroupParams.xReadGroupParams().count(1),
                     Map.of(STREAM_NAME, StreamEntryID.XREADGROUP_UNDELIVERED_ENTRY)
             );
+
+            // Process the messages
+            for (Map.Entry<String, List<StreamEntry>> entry : message) {
+                List<StreamEntry> streamEntries = entry.getValue();
+
+                for (StreamEntry streamEntry : streamEntries) {
+                    // Get the entry ID
+                    StreamEntryID entryId = streamEntry.getID();
+
+                    jedis.hset(entryId.toString(),
+                       Map.of(
+                           "JobStatus", "COMPLETED"
+                       )
+                    );
+                    System.out.println("Entry ID: " + entryId);
+
+                    // You can also get other fields
+                    System.out.println("Fields: " + streamEntry.getFields());
+                }
+            }
             System.out.println("Message Read Successful! " + message);
 
             StreamPendingSummary summary =  jedis.xpending(STREAM_NAME, GROUP_NAME);
             System.out.println("Pending Message Count Provided! " + summary.getTotal());
+
         }
     }
 }
