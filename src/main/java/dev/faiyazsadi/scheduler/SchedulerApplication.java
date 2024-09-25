@@ -9,6 +9,7 @@ import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.resps.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,11 +79,13 @@ public class SchedulerApplication {
                     // Get the entry ID
                     StreamEntryID entryId = streamEntry.getID();
 
-                    jedis.hset(entryId.toString(),
-                       Map.of(
-                           "JobStatus", "COMPLETED"
-                       )
-                    );
+                    HashMap<String, String> hashMap = new HashMap<>();
+                    hashMap.put("JobStatus", "COMPLETED");
+                    jedis.hset(entryId.toString(), hashMap);
+
+                    Map<String, String> keys = jedis.hgetAll(entryId.toString());
+                    System.out.println("Job Information Provided! " + keys);
+
                     System.out.println("Entry ID: " + entryId);
 
                     // You can also get other fields
