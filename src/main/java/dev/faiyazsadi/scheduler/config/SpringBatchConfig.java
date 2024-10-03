@@ -33,8 +33,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Configuration
 public class SpringBatchConfig {
-    private JobRepository jobRepository;
-    private PlatformTransactionManager transactionManager;
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
     private final CustomerRepository customerRepository;
 
     @Bean
@@ -78,7 +78,6 @@ public class SpringBatchConfig {
         return writer;
     }
 
-
     @Bean
     public Step step1() {
         return new StepBuilder("step1", jobRepository)
@@ -89,6 +88,7 @@ public class SpringBatchConfig {
                 .taskExecutor(threadPoolTaskExecutor())
                 .build();
     }
+
     @Bean
     public Job runJob() {
         return new JobBuilder("customerJob", jobRepository)
