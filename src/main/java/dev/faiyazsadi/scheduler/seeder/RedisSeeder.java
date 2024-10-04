@@ -29,19 +29,18 @@ public class RedisSeeder implements CommandLineRunner {
         String CONSUMER1 = "EXECUTOR-1";
         String CONSUMER2 = "EXECUTOR-2";
 
-
         try (Jedis jedis = pool.getResource()) {
             jedis.flushAll();
 
             if (!jedis.exists(STREAM_NAME)) {
                 for (int i = 1; i <= 20; ++i) {
                     jedis.xadd(STREAM_NAME,
-                            Map.of(
-                                    "jobName", "job-" + i,
-                                    "projectName", "project-" + i,
-                                    "jobStatus", "starting"
-                            ),
-                            XAddParams.xAddParams()
+                        Map.of(
+                            "jobName", "job-" + i,
+                            "projectName", "project-" + i,
+                            "jobStatus", "starting"
+                        ),
+                        XAddParams.xAddParams()
                     );
                 }
             }

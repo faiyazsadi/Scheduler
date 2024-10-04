@@ -1,49 +1,51 @@
 package dev.faiyazsadi.scheduler.task;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.StreamEntryID;
-import redis.clients.jedis.params.XAddParams;
 import redis.clients.jedis.params.XReadGroupParams;
-import redis.clients.jedis.resps.StreamConsumerInfo;
 import redis.clients.jedis.resps.StreamEntry;
-import redis.clients.jedis.resps.StreamGroupInfo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
+@Order(2)
 public class ScheduledTask {
 
     private final JedisPool pool;
+    final int rateSeconds = 2;
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = rateSeconds * 1000)
     public void runTask() {
-        System.out.println("Task is running every 5 seconds: " + System.currentTimeMillis());
+        System.out.println("Task is running every " + rateSeconds + " seconds: " + System.currentTimeMillis());
 
         String STREAM_NAME = "JOBS";
         String GROUP_NAME  = "EXECUTORS";
-        String CONSUMER1 = "EXECUTOR-1";
-        String CONSUMER2 = "EXECUTOR-2";
+
+        int NO_OF_CONSUMERS = 2;
+        List<String> CONSUMERS = new ArrayList<>();
+        for (int i = 1; i <= NO_OF_CONSUMERS; i++) {
+            String consumer = "EXECUTOR-" + i;
+            CONSUMERS.add(consumer);
+        }
 
         try (Jedis jedis = pool.getResource()) {
-
-            List<Map.Entry<String, List<StreamEntry>>> message1 = readMessage(jedis, GROUP_NAME, CONSUMER1, STREAM_NAME);
-            printMessageInfo(message1, jedis);
-
-            List<Map.Entry<String, List<StreamEntry>>> message2 = readMessage(jedis, GROUP_NAME, CONSUMER2, STREAM_NAME);
-            printMessageInfo(message2, jedis);
+            for (String CONSUMER : CONSUMERS) {
+                List<Map.Entry<String, List<StreamEntry>>> message = readMessage(jedis, GROUP_NAME, CONSUMER, STREAM_NAME);
+                printMessageInfo(message, jedis);
+            }
         }
     }
 
-    private static List<Map.Entry<String, List<StreamEntry>>> readMessage(Jedis jedis, String GROUP_NAME, String CONSUMER, String STREAM_NAME) {
+    private List<Map.Entry<String, List<StreamEntry>>> readMessage(Jedis jedis, String GROUP_NAME, String CONSUMER, String STREAM_NAME) {
         List<Map.Entry<String, List<StreamEntry>>> message =
                 jedis.xreadGroup(GROUP_NAME, CONSUMER,
                 XReadGroupParams.xReadGroupParams().count(1),
@@ -58,7 +60,8 @@ public class ScheduledTask {
         return message;
     }
 
-    private static void printMessageInfo(List<Map.Entry<String, List<StreamEntry>>> message, Jedis jedis) {
+    private void printMessageInfo(List<Map.Entry<String, List<StreamEntry>>> message, Jedis jedis) {
+
         if (message == null) {
             return;
         }
@@ -82,6 +85,9 @@ public class ScheduledTask {
 
                 // You can also get other fields
                 System.out.println("Fields: " + streamEntry.getFields());
+
+                System.out.println("---------------------------------------------------------");
+                System.out.println("---------------------------------------------------------");
             }
         }
     }
