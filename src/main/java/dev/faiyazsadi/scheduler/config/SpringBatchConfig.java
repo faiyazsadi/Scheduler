@@ -1,6 +1,8 @@
 package dev.faiyazsadi.scheduler.config;
 
 import dev.faiyazsadi.scheduler.entity.Customer;
+import dev.faiyazsadi.scheduler.listener.CustomChunkListener;
+import dev.faiyazsadi.scheduler.listener.CustomJobExecutionListener;
 import dev.faiyazsadi.scheduler.processor.CustomItemProcessor;
 import dev.faiyazsadi.scheduler.repository.CustomerRepository;
 import jakarta.annotation.Nullable;
@@ -36,6 +38,7 @@ public class SpringBatchConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final CustomerRepository customerRepository;
+    private final CustomChunkListener customChunkListener;
 
     @Bean
     @StepScope
@@ -81,10 +84,11 @@ public class SpringBatchConfig {
     @Bean
     public Step step1() {
         return new StepBuilder("step1", jobRepository)
-                .<Customer, Customer>chunk(10, transactionManager)
+                .<Customer, Customer>chunk(100, transactionManager)
                 .reader(reader(null))
                 .processor(processor())
                 .writer(writer())
+                .listener(customChunkListener)
                 .taskExecutor(threadPoolTaskExecutor())
                 .build();
     }
@@ -93,6 +97,7 @@ public class SpringBatchConfig {
     public Job runJob() {
         return new JobBuilder("customerJob", jobRepository)
                 .start(step1())
+                .listener(new CustomJobExecutionListener())
                 .build();
     }
 

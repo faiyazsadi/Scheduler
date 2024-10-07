@@ -54,7 +54,8 @@ public class JobService {
 
                 JobParameters jobParameters = new JobParametersBuilder()
                     .addString("fileName", fileName)
-                    .addLong("startAt", System.currentTimeMillis()).toJobParameters();
+                    .addLong("startAt", System.currentTimeMillis())
+                    .addString("jobEntryID", entryId.toString()).toJobParameters();
 
                 try {
                     JobExecution jobExecution = jobLauncher.run(job, jobParameters);
