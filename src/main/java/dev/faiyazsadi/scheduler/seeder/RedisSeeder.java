@@ -38,7 +38,7 @@ public class RedisSeeder implements CommandLineRunner {
                         Map.of(
                             "jobName", "job-" + i,
                             "projectName", "project-" + i,
-                            "jobStatus", "starting"
+                            "fileName", "customers-10k.csv"
                         ),
                         XAddParams.xAddParams()
                     );

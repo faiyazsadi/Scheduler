@@ -1,7 +1,9 @@
 package dev.faiyazsadi.scheduler.task;
 
+import dev.faiyazsadi.scheduler.service.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -10,20 +12,21 @@ import redis.clients.jedis.StreamEntryID;
 import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.resps.StreamEntry;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RequiredArgsConstructor
 @Component
-@Order(2)
-public class ScheduledTask {
-
+@EnableScheduling
+@RequiredArgsConstructor
+public class ScheduleTask {
+    private final JobService jobService;
     private final JedisPool pool;
     final int rateSeconds = 2;
 
-    @Scheduled(fixedRate = rateSeconds * 1000)
+    @Scheduled(fixedRate = rateSeconds * 1000, initialDelay = 1000)
     public void runTask() {
         System.out.println("Task is running every " + rateSeconds + " seconds: " + System.currentTimeMillis());
 
@@ -41,7 +44,10 @@ public class ScheduledTask {
             for (String CONSUMER : CONSUMERS) {
                 List<Map.Entry<String, List<StreamEntry>>> message = readMessage(jedis, GROUP_NAME, CONSUMER, STREAM_NAME);
                 printMessageInfo(message, jedis);
+                jobService.runJob(jedis, message);
             }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 
