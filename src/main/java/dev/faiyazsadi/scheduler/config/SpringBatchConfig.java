@@ -38,6 +38,7 @@ public class SpringBatchConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final CustomerRepository customerRepository;
+    private final CustomJobExecutionListener customJobExecutionListener;
     private final CustomChunkListener customChunkListener;
 
     @Bean
@@ -97,7 +98,7 @@ public class SpringBatchConfig {
     public Job runJob() {
         return new JobBuilder("customerJob", jobRepository)
                 .start(step1())
-                .listener(new CustomJobExecutionListener())
+                .listener(customJobExecutionListener)
                 .build();
     }
 

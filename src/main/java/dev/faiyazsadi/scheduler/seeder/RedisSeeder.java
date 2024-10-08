@@ -16,7 +16,6 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
-@Order(1)
 public class RedisSeeder implements CommandLineRunner {
 
     private final JedisPool pool;
@@ -28,17 +27,18 @@ public class RedisSeeder implements CommandLineRunner {
         String GROUP_NAME  = "EXECUTORS";
         String CONSUMER1 = "EXECUTOR-1";
         String CONSUMER2 = "EXECUTOR-2";
+        int NO_OF_JOBS = 4;
 
         try (Jedis jedis = pool.getResource()) {
             jedis.flushAll();
 
             if (!jedis.exists(STREAM_NAME)) {
-                for (int i = 1; i <= 20; ++i) {
+                for (int i = 1; i <= NO_OF_JOBS; ++i) {
                     jedis.xadd(STREAM_NAME,
                         Map.of(
                             "jobName", "job-" + i,
                             "projectName", "project-" + i,
-                            "fileName", "customers-10k.csv"
+                            "fileName", "customers-1m.csv"
                         ),
                         XAddParams.xAddParams()
                     );

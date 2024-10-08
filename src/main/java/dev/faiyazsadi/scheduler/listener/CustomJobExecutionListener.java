@@ -8,6 +8,8 @@ import org.springframework.batch.core.listener.JobExecutionListenerSupport;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +25,16 @@ import java.util.stream.Stream;
 public class CustomJobExecutionListener implements JobExecutionListener {
 
     private static final ConcurrentHashMap<Long, Long> datasetLen = new ConcurrentHashMap<>();
+    private final JedisPool jedisPool;
+    private final long TTL = 10; // seconds
+
+    @Override
+    public void afterJob(JobExecution jobExecution) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            String hashKey = jobExecution.getJobParameters().getString("jobEntryID");
+            jedis.expire(hashKey, TTL);
+        }
+    }
 
     @SneakyThrows
     @Override
