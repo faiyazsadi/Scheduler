@@ -2,6 +2,7 @@ package dev.faiyazsadi.scheduler.task;
 
 import dev.faiyazsadi.scheduler.service.JobService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,34 +19,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.micrometer.observation.transport.Kind.CONSUMER;
+
 @Component
 @EnableScheduling
 @RequiredArgsConstructor
 public class ScheduleTask {
     private final JobService jobService;
+
     private final JedisPool jedisPool;
+
     final int rateSeconds = 2;
+
+    @Value("#{streamName}")
+    String STREAM_NAME;
+
+    @Value("#{consumerGroupName}")
+    String GROUP_NAME;
+
+    @Value("#{uniqueSchedulerId}")
+    String CONSUMER_NAME;
 
     @Scheduled(fixedRate = rateSeconds * 1000, initialDelay = 1000)
     public void runTask() {
         System.out.println("Task is running every " + rateSeconds + " seconds: " + System.currentTimeMillis());
 
-        String STREAM_NAME = "JOBS";
-        String GROUP_NAME  = "EXECUTORS";
-        int NO_OF_CONSUMERS = 2;
-
-        List<String> CONSUMERS = new ArrayList<>();
-        for (int i = 1; i <= NO_OF_CONSUMERS; i++) {
-            String consumer = "EXECUTOR-" + i;
-            CONSUMERS.add(consumer);
-        }
-
         try (Jedis jedis = jedisPool.getResource()) {
-            for (String CONSUMER : CONSUMERS) {
-                List<Map.Entry<String, List<StreamEntry>>> message = readMessage(jedis, GROUP_NAME, CONSUMER, STREAM_NAME);
-                printMessageInfo(message, jedis);
-                jobService.runJob(jedis, message);
-            }
+            List<Map.Entry<String, List<StreamEntry>>> message = readMessage(jedis, GROUP_NAME, CONSUMER_NAME, STREAM_NAME);
+            printMessageInfo(message, jedis);
+            jobService.runJob(jedis, message);
+
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
