@@ -2,6 +2,7 @@ package dev.faiyazsadi.scheduler.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
@@ -30,6 +31,11 @@ public class CustomJobExecutionListener implements JobExecutionListener {
 
     @Override
     public void afterJob(JobExecution jobExecution) {
+
+        if(jobExecution.getStatus() != BatchStatus.COMPLETED) {
+            throw new RuntimeException("Job Execution Did Not Complete Successfully");
+        }
+
         try (Jedis jedis = jedisPool.getResource()) {
             String hashKey = jobExecution.getJobParameters().getString("jobEntryID");
             jedis.expire(hashKey, TTL);

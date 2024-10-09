@@ -11,8 +11,8 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class CustomChunkListener implements ChunkListener {
 
     private final CustomJobExecutionListener customJobExecutionListener;

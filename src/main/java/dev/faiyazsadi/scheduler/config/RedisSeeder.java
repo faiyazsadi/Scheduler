@@ -1,8 +1,7 @@
-package dev.faiyazsadi.scheduler.seeder;
+package dev.faiyazsadi.scheduler.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -13,9 +12,10 @@ import redis.clients.jedis.resps.StreamGroupInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class RedisSeeder implements CommandLineRunner {
 
     private final JedisPool pool;
@@ -25,12 +25,13 @@ public class RedisSeeder implements CommandLineRunner {
 
         String STREAM_NAME = "JOBS";
         String GROUP_NAME  = "EXECUTORS";
+        String CONSUMER_NAME = "EXECUTOR-" + UUID.randomUUID().toString();
+
         String CONSUMER1 = "EXECUTOR-1";
         String CONSUMER2 = "EXECUTOR-2";
         int NO_OF_JOBS = 4;
 
         try (Jedis jedis = pool.getResource()) {
-            jedis.flushAll();
 
             if (!jedis.exists(STREAM_NAME)) {
                 for (int i = 1; i <= NO_OF_JOBS; ++i) {

@@ -23,7 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ScheduleTask {
     private final JobService jobService;
-    private final JedisPool pool;
+    private final JedisPool jedisPool;
     final int rateSeconds = 2;
 
     @Scheduled(fixedRate = rateSeconds * 1000, initialDelay = 1000)
@@ -32,15 +32,15 @@ public class ScheduleTask {
 
         String STREAM_NAME = "JOBS";
         String GROUP_NAME  = "EXECUTORS";
-
         int NO_OF_CONSUMERS = 2;
+
         List<String> CONSUMERS = new ArrayList<>();
         for (int i = 1; i <= NO_OF_CONSUMERS; i++) {
             String consumer = "EXECUTOR-" + i;
             CONSUMERS.add(consumer);
         }
 
-        try (Jedis jedis = pool.getResource()) {
+        try (Jedis jedis = jedisPool.getResource()) {
             for (String CONSUMER : CONSUMERS) {
                 List<Map.Entry<String, List<StreamEntry>>> message = readMessage(jedis, GROUP_NAME, CONSUMER, STREAM_NAME);
                 printMessageInfo(message, jedis);
