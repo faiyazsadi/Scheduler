@@ -1,7 +1,6 @@
 package dev.faiyazsadi.scheduler.service;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
@@ -9,28 +8,34 @@ import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteExcep
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.StreamEntryID;
 import redis.clients.jedis.resps.StreamEntry;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-@AllArgsConstructor
 public class JobService {
-    @Autowired
-    @Qualifier("CustomJobLauncher")
-    private JobLauncher jobLauncher;
-    private Job job;
-    private final String STREAM_NAME = "JOBS";
-    private final String GROUP_NAME  = "EXECUTORS";
+    private final JobLauncher jobLauncher;
+    private final Job job;
+    private final String STREAM_NAME;
+    private final String GROUP_NAME;
+
+    public JobService(Job job,
+                      @Qualifier("consumerGroupName") String STREAM_NAME,
+                      @Qualifier("consumerGroupName") String GROUP_NAME,
+                      @Qualifier("CustomJobLauncher") JobLauncher jobLauncher) {
+        this.job = job;
+        this.STREAM_NAME = STREAM_NAME;
+        this.GROUP_NAME = GROUP_NAME;
+        this.jobLauncher = jobLauncher;
+    }
 
     public void runJob(Jedis jedis, List<Map.Entry<String, List<StreamEntry>>> message) throws FileNotFoundException {
         if (message == null) {

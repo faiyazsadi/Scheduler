@@ -32,13 +32,13 @@ public class ScheduleTask {
     final int rateSeconds = 2;
 
     @Value("#{streamName}")
-    String STREAM_NAME;
+    private String STREAM_NAME;
 
     @Value("#{consumerGroupName}")
-    String GROUP_NAME;
+    private String GROUP_NAME;
 
     @Value("#{uniqueSchedulerId}")
-    String CONSUMER_NAME;
+    private String CONSUMER_NAME;
 
     @Scheduled(fixedRate = rateSeconds * 1000, initialDelay = 1000)
     public void runTask() {

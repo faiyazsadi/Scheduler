@@ -19,13 +19,13 @@ public class RedisSeeder implements CommandLineRunner {
     private final JedisPool pool;
 
     @Value("#{streamName}")
-    String STREAM_NAME;
+    private String STREAM_NAME;
 
     @Value("#{consumerGroupName}")
-    String GROUP_NAME;
+    private String GROUP_NAME;
 
     @Value("#{uniqueSchedulerId}")
-    String CONSUMER_NAME;
+    private String CONSUMER_NAME;
 
     @Override
     public void run(String... args) {
