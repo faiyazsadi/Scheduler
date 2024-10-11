@@ -28,7 +28,7 @@ public class JobService {
     private final String GROUP_NAME;
 
     public JobService(Job job,
-                      @Qualifier("consumerGroupName") String STREAM_NAME,
+                      @Qualifier("streamName") String STREAM_NAME,
                       @Qualifier("consumerGroupName") String GROUP_NAME,
                       @Qualifier("CustomJobLauncher") JobLauncher jobLauncher) {
         this.job = job;

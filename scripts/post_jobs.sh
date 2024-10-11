@@ -8,7 +8,7 @@ REDIS_PORT="6379"
 STREAM_NAME="JOBS"
 
 # Number of jobs to add
-NO_OF_JOBS=10
+NO_OF_JOBS=5
 
 echo "Stream '$STREAM_NAME' does not exist. Adding entries..."
 
