@@ -3,7 +3,6 @@ package dev.faiyazsadi.scheduler.task;
 import dev.faiyazsadi.scheduler.service.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,12 +13,9 @@ import redis.clients.jedis.params.XReadGroupParams;
 import redis.clients.jedis.resps.StreamEntry;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static io.micrometer.observation.transport.Kind.CONSUMER;
 
 @Component
 @EnableScheduling
@@ -29,7 +25,7 @@ public class ScheduleTask {
 
     private final JedisPool jedisPool;
 
-    final int rateSeconds = 2;
+    final int rateSeconds = 5;
 
     @Value("#{streamName}")
     private String STREAM_NAME;

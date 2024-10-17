@@ -6,11 +6,13 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.listener.JobExecutionListenerSupport;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.StreamEntryID;
 
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +31,12 @@ public class CustomJobExecutionListener implements JobExecutionListener {
     private final JedisPool jedisPool;
     private final long TTL = 10; // seconds
 
+    @Value("#{streamName}")
+    private String STREAM_NAME;
+
+    @Value("#{consumerGroupName}")
+    private String GROUP_NAME;
+
     @Override
     public void afterJob(JobExecution jobExecution) {
 
@@ -37,8 +45,13 @@ public class CustomJobExecutionListener implements JobExecutionListener {
         }
 
         try (Jedis jedis = jedisPool.getResource()) {
-            String hashKey = jobExecution.getJobParameters().getString("jobEntryID");
-            jedis.expire(hashKey, TTL);
+            String jobEntryID = jobExecution.getJobParameters().getString("jobEntryID");
+
+            assert jobEntryID != null;
+            StreamEntryID entryID = new StreamEntryID(jobEntryID);
+            jedis.xack(STREAM_NAME, GROUP_NAME, entryID);
+
+            jedis.expire(jobEntryID, TTL);
         }
     }
 

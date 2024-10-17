@@ -66,7 +66,7 @@ public class JobService {
                     JobExecution jobExecution = jobLauncher.run(job, jobParameters);
 
                     StreamEntryID entryID = streamEntry.getID();
-                    jedis.xack(STREAM_NAME, GROUP_NAME, entryId);
+//                    jedis.xack(STREAM_NAME, GROUP_NAME, entryId);
 
                     jedis.hset(entryID.toString(), "BatchJobId", jobExecution.getJobId().toString());
                     jedis.hset(entryID.toString(), "JobStatus", jobExecution.getStatus().toString());
